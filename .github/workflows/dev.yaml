@@ -1,0 +1,58 @@
+name: capston-todoinfra
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+permissions:
+  id-token: write
+  contents: read
+ 
+jobs:
+  build:
+    name: build
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5.0.0
+      - name: Azure login
+        uses: Azure/login@v2.3.0
+        with:
+          client-id: c653512b-8f66-418e-bcda-f31e37dabe18
+          tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
+          subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+      - name: terraform init
+        run: terraform init
+        working-directory: environment\dev
+      - name: terraform init
+        run: terraform init
+        working-directory: environment\dev
+  
+      - name: terraform plan
+        run: terraform plan 
+        working-directory: environment\dev
+
+  deploy:
+    name: terraform apply
+    runs-on: self-hosted
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: build
+    steps: 
+    - name: Checkout
+      uses: actions/checkout@v5.0.0
+     
+    - name: Azure Login
+      uses: Azure/login@v2.3.0
+      with:
+        client-id: c653512b-8f66-418e-bcda-f31e37dabe18
+        tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
+        subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+    
+    - name: terraform init
+      run: terraform init
+      working-directory: environment\dev   
+    - name: terraform apply 
+      run: terraform apply --auto-approve
+      working-directory: environment\dev
