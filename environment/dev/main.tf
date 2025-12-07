@@ -21,6 +21,7 @@ module "aks" {
   tags = local.common_tags
 }
 module "acr" {
+  depends_on = [ module.rg ]
   source = "../../modules/azurerm_container_registry"
   acr_name = "rk8sacr"
      resource_group_name = "rg-capston-dev-cin-001"
@@ -34,6 +35,7 @@ module "key_vault" {
   key_vaults = var.key_vaults
 }
 module "sql_server" {
+  depends_on = [ module.rg, module.key_vault ]
   source = "../../modules/azurerm_sql_server"
   todomysqlserver01 = var.todomysqlserver01
  
