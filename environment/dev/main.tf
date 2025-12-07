@@ -14,8 +14,8 @@ module "rg" {
 module "aks" {
   depends_on = [ module.rg ]
   source = "../../modules/azurerm_aks"
-  aks_name = "k8s-dev-aks"
-   resource_group_name = "k8s-dev-rg"
+  aks_name = "aks-dev-cin-001"
+   resource_group_name = "rg-capston-dev-cin-001"
   location = "central india"
   dns_prefix = "aks-dev-todoapp"
   tags = local.common_tags
@@ -23,10 +23,15 @@ module "aks" {
 module "acr" {
   source = "../../modules/azurerm_container_registry"
   acr_name = "rk8sacr"
-     resource_group_name = "k8s-dev-rg"
+     resource_group_name = "rg-capston-dev-cin-001"
   location = "central india"
   tags = local.common_tags
 
+}
+module "key_vault" {
+  depends_on = [ module.rg ]
+  source = "../../modules/azurerm_key_vault"
+  key_vaults = var.key_vaults
 }
 module "sql_server" {
   source = "../../modules/azurerm_sql_server"
