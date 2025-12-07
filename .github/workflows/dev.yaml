@@ -49,6 +49,7 @@ jobs:
     
     - name: terraform init
       run: terraform init
+      
       working-directory: environment\dev   
     - name: terraform apply 
       run: terraform apply --auto-approve
