@@ -1,11 +1,7 @@
 name: capston-todoinfra
-on:
-  push:
-    branches:
-    - main
-  pull_request:
-    branches:
-    - main
+on: 
+  workflow_dispatch:
+
 permissions:
   id-token: write
   contents: read
@@ -49,6 +45,7 @@ jobs:
     
     - name: terraform init
       run: terraform init
+      
       working-directory: environment\dev   
     - name: terraform apply 
       run: terraform apply --auto-approve
