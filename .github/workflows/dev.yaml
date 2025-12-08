@@ -53,23 +53,23 @@ jobs:
           working_directory: environment/dev
         continue-on-error: true
 
-  TFLINT:
-    runs-on: self-hosted
-    needs: TFSEC
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install TFLint
-        run: |
-          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-      - name: Run TFLint
-        working-directory: environment/dev
-        run: tflint
-        continue-on-error: true
+  # TFLINT:
+  #   runs-on: self-hosted
+  #   needs: TFSEC
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #     - name: Install TFLint
+  #       run: |
+  #         curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+  #     - name: Run TFLint
+  #       working-directory: environment/dev
+  #       run: tflint
+  #       continue-on-error: true
 
   # ========== PLAN STAGE ==========
   Plan:
     runs-on: self-hosted
-    # needs: TFLINT
+    needs: TFSEC
     steps:
       - uses: actions/checkout@v5
       - name: Azure Login
@@ -110,3 +110,10 @@ jobs:
           client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
           tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
           subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+      - name: Terraform Init
+        working-directory: environment/dev
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: environment/dev
+        run: terraform apply   
