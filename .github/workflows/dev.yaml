@@ -1,52 +1,112 @@
 name: capston-todoinfra
-on: 
+
+on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
 
 permissions:
   id-token: write
   contents: read
- 
+
 jobs:
-  build:
-    name: build
+
+  # ========== BUILD STAGE ==========
+  Validate:
     runs-on: self-hosted
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5.0.0
-      - name: Azure login
-        uses: Azure/login@v2.3.0
+      - uses: actions/checkout@v5
+      - name: Azure Login
+        uses: Azure/login@v2
         with:
           client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
           tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
           subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
-      - name: terraform init
-        run: terraform init
-        working-directory: environment\dev
-  
-      - name: terraform plan
-        run: terraform plan 
-        working-directory: environment\dev
-
-  deploy:
-    name: terraform apply
-    runs-on: self-hosted
-    if: ${{ github.ref == 'refs/heads/main' }}
-    needs: build
-    steps: 
-    - name: Checkout
-      uses: actions/checkout@v5.0.0
-     
-    - name: Azure Login
-      uses: Azure/login@v2.3.0
-      with:
-        client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
-        tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
-        subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
-    
-    - name: terraform init
-      run: terraform init
       
-      working-directory: environment\dev   
-    - name: terraform apply 
-      run: terraform apply --auto-approve
-      working-directory: environment\dev
+      - name: Terraform Init
+        working-directory: environment/dev
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: environment/dev
+        run: terraform validate
+
+  FMT:
+    runs-on: self-hosted
+    needs: Validate
+    steps:
+      - uses: actions/checkout@v5
+      - name: Terraform FMT
+        working-directory: environment/dev
+        run: terraform fmt -recursive
+
+  TFSEC:
+    runs-on: self-hosted
+    needs: FMT
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run TFSec
+        uses: aquasecurity/tfsec-action@v1.0.1
+        with:
+          working_directory: environment/dev
+        continue-on-error: true
+
+  TFLINT:
+    runs-on: self-hosted
+    needs: TFSEC
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      - name: Run TFLint
+        working-directory: environment/dev
+        run: tflint
+        continue-on-error: true
+
+  # ========== PLAN STAGE ==========
+  Plan:
+    runs-on: self-hosted
+    needs: TFLINT
+    steps:
+      - uses: actions/checkout@v5
+      - name: Azure Login
+        uses: Azure/login@v2
+        with:
+          client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
+          tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
+          subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+
+      - name: Terraform Init
+        working-directory: environment/dev
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: environment/dev
+        run: terraform plan -out=tfplan
+
+  # ========== MANUAL APPROVAL ==========
+  ManualApproval:
+    runs-on: self-hosted
+    needs: Plan
+    environment:
+      name: prod
+    steps:
+      - name: Waiting for Manual Approval
+        run: echo "Please approve deployment from GitHub → Environments → prod"
+
+  # ========== APPLY STAGE ==========
+  Apply:
+    runs-on: self-hosted
+    needs: ManualApproval
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Azure Login
+        uses: Azure/login@v2
+        with:
+          client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
+          tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
+          subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
