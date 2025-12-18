@@ -49,10 +49,7 @@ jobs:
   TFSEC:
     runs-on: self-hosted
     needs: FMT
-
-  steps:
-    - uses: actions/checkout@v5
-
+    steps:
     - name: Install tfsec (Windows Runner)
       shell: pwsh
       run: |
