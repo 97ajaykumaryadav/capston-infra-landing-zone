@@ -47,8 +47,8 @@ jobs:
         run: terraform fmt -recursive
 
   TFSEC:
-  runs-on: self-hosted
-  needs: FMT
+    runs-on: self-hosted
+    needs: FMT
 
   steps:
     - uses: actions/checkout@v5
@@ -115,4 +115,4 @@ jobs:
       - name: Terraform Apply
         working-directory: environment/dev
         run: terraform apply -auto-approve
-        
+
