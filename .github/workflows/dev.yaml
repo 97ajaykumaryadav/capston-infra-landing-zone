@@ -1,12 +1,12 @@
-name: capston-todoinfra
+name: capston-infra-workflow
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
-      - 'feature/**'
-
+  pull_request:
+    branches:
+      - main
 permissions:
   id-token: write
   contents: read
@@ -21,9 +21,9 @@ jobs:
       - name: Azure Login
         uses: Azure/login@v2
         with:
-          client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
-          tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
-          subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       
       - name: Terraform Init
         working-directory: environment/dev
@@ -43,30 +43,24 @@ jobs:
         run: terraform fmt -recursive
 
   TFSEC:
-    runs-on: self-hosted
-    needs: FMT
-    steps:
-      - uses: actions/checkout@v5
-      - name: Run TFSec
-        uses: aquasecurity/tfsec-action@v1.0.1
-        with:
-          working_directory: environment/dev
-        continue-on-error: true
+  runs-on: self-hosted
+  needs: FMT
 
-  # TFLINT:
-  #   runs-on: self-hosted
-  #   needs: TFSEC
-  #   steps:
-  #     - uses: actions/checkout@v5
-  #     - name: Install TFLint
-  #       run: |
-  #         curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-  #     - name: Run TFLint
-  #       working-directory: environment/dev
-  #       run: tflint
-  #       continue-on-error: true
+  steps:
+    - uses: actions/checkout@v5
 
-  # ========== PLAN STAGE ==========
+    - name: Install tfsec (Windows Runner)
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-windows-amd64.exe" -OutFile "tfsec.exe"
+
+    - name: Run TFSec Scan
+      shell: pwsh
+      run: |
+        ./tfsec.exe environment/dev
+      continue-on-error: true
+
+
   Plan:
     runs-on: self-hosted
     needs: TFSEC
@@ -75,9 +69,9 @@ jobs:
       - name: Azure Login
         uses: Azure/login@v2
         with:
-          client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
-          tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
-          subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Terraform Init
         working-directory: environment/dev
@@ -107,9 +101,9 @@ jobs:
       - name: Azure Login
         uses: Azure/login@v2
         with:
-          client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
-          tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
-          subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: Terraform Init
         working-directory: environment/dev
         run: terraform init
