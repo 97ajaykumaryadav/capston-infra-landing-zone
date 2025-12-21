@@ -26,9 +26,9 @@ jobs:
       - name: Azure Login
         uses: Azure/login@v2
         with:
-          client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
-          tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
-          subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       
       - name: Terraform Init
         working-directory: environment/dev
@@ -52,12 +52,12 @@ jobs:
     needs: FMT
     steps:
     - name: Install tfsec (Windows Runner)
-      shell: pwsh
+      shell: powershell
       run: |
         Invoke-WebRequest -Uri "https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-windows-amd64.exe" -OutFile "tfsec.exe"
 
     - name: Run TFSec Scan
-      shell: pwsh
+      shell: powershell
       run: |
         ./tfsec.exe environment/dev
       continue-on-error: true
@@ -71,9 +71,9 @@ jobs:
       - name: Azure Login
         uses: Azure/login@v2
         with:
-          client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
-          tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
-          subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Terraform Init
         working-directory: environment/dev
@@ -103,9 +103,10 @@ jobs:
       - name: Azure Login
         uses: Azure/login@v2
         with:
-          client-id: 435207cd-1a2b-46b3-af85-67f3ebf5e68d
-          tenant-id: 215650d6-bc81-4e8e-ad7a-3c3ff4c8af04
-          subscription-id: 792b5051-461b-4568-abbd-b3d549f22f8c
+          with:
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: Terraform Init
         working-directory: environment/dev
         run: terraform init

@@ -6,6 +6,6 @@ variable "node_count" {
   default = 1
 }
 variable "vm_size" {
-  default = "standard_b4as_v2"
+  default = "Standard_DS2_v2"
 }
 variable "tags" {}
