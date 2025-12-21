@@ -23,7 +23,7 @@ module "aks" {
 module "acr" {
   depends_on = [ module.rg ]
   source = "../../modules/azurerm_container_registry"
-  acr_name = "rk8sacr"
+  acr_name = "acrcapstondevcin"
      resource_group_name = "rg-capston-dev-cin-001"
   location = "central india"
   tags = local.common_tags
