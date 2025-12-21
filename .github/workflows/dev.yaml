@@ -52,7 +52,7 @@ jobs:
     needs: FMT
     steps:
     - name: Install tfsec (Windows Runner)
-      shell: pwsh
+      shell: powershell
       run: |
         Invoke-WebRequest -Uri "https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-windows-amd64.exe" -OutFile "tfsec.exe"
 
