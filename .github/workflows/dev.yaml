@@ -47,12 +47,9 @@ jobs:
         run: terraform fmt -recursive
 
   TFSEC:
-  runs-on: self-hosted
-  needs: FMT
-
-  steps:
-    - uses: actions/checkout@v5
-
+    runs-on: self-hosted
+    needs: FMT
+    steps:
     - name: Install tfsec (Windows Runner)
       shell: pwsh
       run: |
